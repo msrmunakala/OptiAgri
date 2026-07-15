@@ -1,0 +1,14 @@
+*.py[cod]
+venv/
+env/
+.env
+instance/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+.DS_Store
+models/*.pkl
+models/*.json
+static/images/charts/*.png
+!static/images/charts/.gitkeep
