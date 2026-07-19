@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}OptiCrop - Crop Recommendation{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+        <div class="row align-items-center min-vh-100 py-5">
+            <div class="col-lg-6 text-white reveal">
+                <span class="eyebrow">AI-powered crop planning</span>
+                <h1>OptiCrop</h1>
+                <p class="lead">Recommend the most suitable crop from soil nutrients, weather, pH, and rainfall with a trained machine learning model.</p>
+                <div class="ops-status-row">
+                    <span><i class="bi bi-broadcast-pin"></i> Model online</span>
+                    <span><i class="bi bi-shield-check"></i> Validated inputs</span>
+                    <span><i class="bi bi-activity"></i> Real-time scoring</span>
+                </div>
+                <div class="hero-actions">
+                    <a href="#predict" class="btn btn-light btn-lg"><i class="bi bi-arrow-down-circle"></i> Start Prediction</a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg"><i class="bi bi-bar-chart"></i> View Metrics</a>
+                </div>
+                <div class="hero-stats">
+                    <div><strong data-count-to="{{ "%.2f"|format(metrics.accuracy * 100) }}">{{ "%.2f"|format(metrics.accuracy * 100) }}%</strong><span>Best accuracy</span></div>
+                    <div><strong>{{ metrics.best_model }}</strong><span>Selected model</span></div>
+                    <div><strong data-count-to="{{ metrics.dataset_rows }}">{{ metrics.dataset_rows }}</strong><span>Training rows</span></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="prediction-panel reveal delay-1" id="predict">
+                    <div class="panel-status">
+                        <span class="status-dot"></span>
+                        <span>Recommendation engine ready</span>
+                    </div>
+                    <div class="panel-heading">
+                        <div>
+                            <span class="eyebrow text-success">Farm profile</span>
+                            <h2>Crop Recommendation</h2>
+                        </div>
+                        <i class="bi bi-clipboard2-pulse panel-icon"></i>
+                    </div>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form action="{{ url_for('predict') }}" method="post" novalidate class="needs-validation">
+                        <div class="row g-3">
+                            {% for feature in features %}
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ feature }}">
+                                        {% if feature in ['N', 'P', 'K'] %}{{ feature }}{% else %}{{ feature|title }}{% endif %}
+                                    </label>
+                                    <div class="input-shell">
+                                        {% if feature == 'N' %}
+                                            <i class="bi bi-diagram-3"></i>
+                                        {% elif feature == 'P' %}
+                                            <i class="bi bi-layers"></i>
+                                        {% elif feature == 'K' %}
+                                            <i class="bi bi-gem"></i>
+                                        {% elif feature == 'temperature' %}
+                                            <i class="bi bi-thermometer-half"></i>
+                                        {% elif feature == 'humidity' %}
+                                            <i class="bi bi-moisture"></i>
+                                        {% elif feature == 'ph' %}
+                                            <i class="bi bi-eyedropper"></i>
+                                        {% else %}
+                                            <i class="bi bi-cloud-rain"></i>
+                                        {% endif %}
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            class="form-control {% if errors.get(feature) %}is-invalid{% endif %}"
+                                            id="{{ feature }}"
+                                            name="{{ feature }}"
+                                            value="{{ values.get(feature, '') }}"
+                                            min="{{ ranges[feature][0] }}"
+                                            max="{{ ranges[feature][1] }}"
+                                            required>
+                                    </div>
+                                    <div class="form-text">{{ ranges[feature][0] }} to {{ ranges[feature][1] }}</div>
+                                    {% if errors.get(feature) %}
+                                        <div class="invalid-feedback">{{ errors[feature] }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg flex-grow-1">
+                                <i class="bi bi-stars"></i> Predict Crop
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-lg icon-btn" id="sampleInputBtn" title="Fill sample input" aria-label="Fill sample input">
+                                <i class="bi bi-magic"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="feature-band">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow text-success">Decision support</span>
+            <h2>Built for quick, confident field planning</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card reveal-on-scroll">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <h3>Model Comparison</h3>
+                    <p>Decision Tree, Random Forest, SVM, Logistic Regression, and KNN are trained and compared automatically.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card reveal-on-scroll">
+                    <i class="bi bi-moisture"></i>
+                    <h3>Soil Health Score</h3>
+                    <p>Each prediction includes a nutrient, pH, and moisture-based soil status for practical planning.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card reveal-on-scroll">
+                    <i class="bi bi-cloud-rain-heavy"></i>
+                    <h3>Crop Advisory</h3>
+                    <p>Get suitable season, water requirement, fertilizer suggestion, and basic agronomic guidance.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="operations-band">
+    <div class="container">
+        <div class="dashboard-shell reveal-on-scroll">
+            <div class="dashboard-copy">
+                <span class="eyebrow text-success">Commercial dashboard</span>
+                <h2>From field readings to production guidance in one workflow</h2>
+                <p>OptiCrop keeps prediction, model performance, soil quality, and agronomic advice connected so teams can evaluate crop choices quickly.</p>
+            </div>
+            <div class="ops-grid">
+                <div class="ops-tile soil">
+                    <i class="bi bi-layers-half"></i>
+                    <span>Nutrient Index</span>
+                    <strong>7 inputs</strong>
+                    <div class="mini-meter"><span style="width: 86%"></span></div>
+                </div>
+                <div class="ops-tile water">
+                    <i class="bi bi-droplet"></i>
+                    <span>Climate Fit</span>
+                    <strong>Live score</strong>
+                    <div class="mini-meter"><span style="width: 74%"></span></div>
+                </div>
+                <div class="ops-tile harvest">
+                    <i class="bi bi-basket"></i>
+                    <span>Output</span>
+                    <strong>Crop plan</strong>
+                    <div class="mini-meter"><span style="width: 92%"></span></div>
+                </div>
+                <div class="ops-tile model">
+                    <i class="bi bi-cpu"></i>
+                    <span>ML Stack</span>
+                    <strong>5 models</strong>
+                    <div class="mini-meter"><span style="width: 81%"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
