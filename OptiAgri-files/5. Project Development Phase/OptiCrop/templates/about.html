@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}About - OptiCrop{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <span class="eyebrow">Production-ready agriculture ML</span>
+        <h1>About OptiCrop</h1>
+        <p>OptiCrop turns soil and environmental readings into crop recommendations, confidence scores, and basic advisory information.</p>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="row g-5 align-items-start">
+            <div class="col-lg-7">
+                <span class="eyebrow text-success">Pipeline</span>
+                <h2>How It Works</h2>
+                <p>The training pipeline cleans the Crop Recommendation Dataset, generates EDA visualizations, trains five classical machine learning models, compares their accuracy, and saves the best performer with Joblib.</p>
+                <p>The Flask application validates user inputs, loads the saved model, predicts the crop, estimates confidence, scores soil health, and returns practical crop guidance.</p>
+
+                <div class="timeline">
+                    <div><span>1</span><strong>Collect</strong><p>N, P, K, temperature, humidity, pH, and rainfall.</p></div>
+                    <div><span>2</span><strong>Train</strong><p>Decision Tree, Random Forest, SVM, Logistic Regression, and KNN.</p></div>
+                    <div><span>3</span><strong>Recommend</strong><p>Return crop, confidence, soil status, season, water, and fertilizer guidance.</p></div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="about-panel reveal-on-scroll">
+                    <h3>Current Model</h3>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="bi bi-check2-circle"></i> Best model: {{ metrics.best_model }}</li>
+                        <li><i class="bi bi-check2-circle"></i> Accuracy: {{ "%.2f"|format(metrics.accuracy * 100) }}%</li>
+                        <li><i class="bi bi-check2-circle"></i> Dataset rows: {{ metrics.dataset_rows }}</li>
+                        <li><i class="bi bi-check2-circle"></i> Flask, Pandas, NumPy, Scikit-Learn, Matplotlib, Seaborn</li>
+                        <li><i class="bi bi-check2-circle"></i> Compatible with Render, Railway, and PythonAnywhere</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

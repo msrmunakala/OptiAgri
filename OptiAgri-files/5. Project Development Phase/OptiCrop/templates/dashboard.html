@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - OptiCrop{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <span class="eyebrow">Model intelligence</span>
+        <h1>Training Dashboard</h1>
+        <p>EDA, model comparison, confusion matrix, and classification metrics generated from the training pipeline.</p>
+        <div class="ops-status-row">
+            <span><i class="bi bi-check-circle"></i> Pipeline complete</span>
+            <span><i class="bi bi-database-check"></i> {{ metrics.dataset_rows }} rows</span>
+            <span><i class="bi bi-award"></i> {{ metrics.best_model }}</span>
+        </div>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="metric-card dashboard-kpi reveal-on-scroll">
+                    <i class="bi bi-trophy"></i>
+                    <span>Best Model</span>
+                    <strong>{{ metrics.best_model }}</strong>
+                    <p>Selected by highest test accuracy.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card dashboard-kpi reveal-on-scroll">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Accuracy</span>
+                    <strong data-count-to="{{ "%.2f"|format(metrics.accuracy * 100) }}">{{ "%.2f"|format(metrics.accuracy * 100) }}%</strong>
+                    <p>Held-out evaluation accuracy.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card dashboard-kpi reveal-on-scroll">
+                    <i class="bi bi-database"></i>
+                    <span>Dataset Rows</span>
+                    <strong data-count-to="{{ metrics.dataset_rows }}">{{ metrics.dataset_rows }}</strong>
+                    <p>{{ metrics.dataset_path }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="model-table reveal-on-scroll">
+            <div class="table-title">
+                <div>
+                    <span class="eyebrow text-success">Evaluation</span>
+                    <h2>Model Comparison</h2>
+                </div>
+                <i class="bi bi-cpu"></i>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Accuracy</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, score in metrics.model_scores.items() %}
+                            <tr>
+                                <td>{{ name }}</td>
+                                <td>{{ "%.2f"|format(score * 100) }}%</td>
+                                <td>
+                                    <div class="progress" role="progressbar" aria-valuenow="{{ score * 100 }}" aria-valuemin="0" aria-valuemax="100">
+                                        <div class="progress-bar bg-success animated-bar" style="--target-width: {{ score * 100 }}%; width: {{ score * 100 }}%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section-heading mt-5">
+            <span class="eyebrow text-success">Visual diagnostics</span>
+            <h2>Training Insights</h2>
+        </div>
+        <div class="chart-grid mt-5">
+            {% for chart in charts %}
+                <a href="{{ url_for('static', filename='images/charts/' ~ chart) }}" class="chart-card reveal-on-scroll" target="_blank" rel="noopener">
+                    <img src="{{ url_for('static', filename='images/charts/' ~ chart) }}" alt="{{ chart.replace('_', ' ').replace('.png', '')|title }}">
+                    <span>{{ chart.replace('_', ' ').replace('.png', '')|title }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
